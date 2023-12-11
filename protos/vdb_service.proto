@@ -1,0 +1,39 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+message SimilaritySearchRequest {
+  repeated string query_texts = 1; 
+  int32 n_results = 2;
+}
+
+message SimilaritySearchResponse {
+  repeated string ids = 1;
+  repeated double distances = 2;
+  repeated string metadatas = 3;
+  repeated string documents = 4;
+}
+
+message AddTextRequest {
+  repeated string documents = 1;
+  repeated string metadatas = 2;
+  repeated string ids = 3;
+}
+
+message AddTextResponse {
+  bool ok = 1;
+}
+
+
+message HealthResponse {
+  float used_ram = 1;
+  float total_ram = 2;
+  float used_cpu = 3;
+  float avg_response_time = 4;
+}
+
+service VDBService {
+  rpc addText (AddTextRequest) returns (AddTextResponse);
+  rpc similaritySearch (SimilaritySearchRequest) returns (SimilaritySearchResponse);
+  rpc health (google.protobuf.Empty) returns (HealthResponse);
+}
+

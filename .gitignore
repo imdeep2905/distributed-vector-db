@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#MAC
+*.DS_STORE
+# Generated 
+server/protos/*
+vdb/protos/*
+
 # C extensions
 *.so
 
