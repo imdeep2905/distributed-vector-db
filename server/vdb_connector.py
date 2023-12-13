@@ -78,10 +78,10 @@ class VDBConnector:
             healths.append(
                 HealthResponse(
                     address=vdb_address,
-                    used_ram=response.used_ram,
-                    total_ram=response.total_ram,
-                    used_cpu=response.used_cpu,
-                    avg_response_time=response.avg_response_time,
+                    used_ram=round(response.used_ram, 3),
+                    total_ram=round(response.total_ram, 3),
+                    used_cpu=round(response.used_cpu, 2),
+                    avg_response_time=round(response.avg_response_time),
                 )
             )
         return healths
