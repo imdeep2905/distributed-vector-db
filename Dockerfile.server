@@ -1,0 +1,52 @@
+# Use the official Python image with Python 3.11
+FROM python:3.11
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Install Python dependencies
+RUN pip install -r requirements.txt
+
+# Install Node.js and npm following official instructions
+RUN apt-get update && \
+    apt-get install -y ca-certificates curl gnupg && \
+    mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    NODE_MAJOR=20 && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && \
+    apt-get install nodejs -y && \
+    npm install -g serve
+
+# Set environment variable for the backend URL
+ENV BACKEND_URL=http://localhost:8000
+
+# Expose ports
+EXPOSE 8000 3000
+
+# Set the working directory to /app/dashboard
+WORKDIR /app/dashboard
+
+# Install npm dependencies
+RUN npm install
+
+# Build the React app
+RUN REACT_APP_BACKEND_URL=$BACKEND_URL npm run build
+
+# Move the build folder to /app/server/static
+RUN mv build /app/server/static
+
+# Set the working directory back to /app
+WORKDIR /app
+
+# Run build_protos.sh
+RUN ./build_protos.sh
+
+# Set the working directory to /app/server
+WORKDIR /app/server
+
+# Execute Python application
+CMD ["sh", "-c", "uvicorn main:app --reload & serve -s /app/server/static -l 3000"]
