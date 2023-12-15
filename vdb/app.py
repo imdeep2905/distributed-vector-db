@@ -74,21 +74,16 @@ class VDBServicer(vdb_service_pb2_grpc.VDBServiceServicer):
         )
 
 
-def serve():
-    port = "50051"
+def serve(port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     vdb_service_pb2_grpc.add_VDBServiceServicer_to_server(
         VDBServicer(), server
     )
-    server.add_insecure_port("[::]:" + port)
+    server.add_insecure_port("[::]:" + str(port))
     server.start()
-    print("Server started, listening on " + port)
+    print("Server started, listening on " + str(port))
     server.wait_for_termination()
 
 
-def main():
-    serve()
-
-
 if __name__ == "__main__":
-    main()
+    serve(50051)

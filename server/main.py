@@ -20,7 +20,11 @@ app.add_middleware(
 )
 
 vdb_connector = VDBConnector(
-    vdb_addresses=["localhost:50051", "localhost:50051"]
+    vdb_addresses=[
+        "dsd-vdb-1:50051",
+        "dsd-vdb-2:50051",
+        "dsd-vdb-3:50051",
+    ]
 )
 
 

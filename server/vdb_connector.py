@@ -63,6 +63,7 @@ class VDBConnector:
                     results.append(result)
                 except Exception as e:
                     print(f"Exception occurred: {e}")
+                    results.append("OFFLINE")
 
         return results
 
@@ -75,15 +76,26 @@ class VDBConnector:
         )
         healths = []
         for vdb_address, response in zip(self.vdb_addresses, responses):
-            healths.append(
-                HealthResponse(
-                    address=vdb_address,
-                    used_ram=round(response.used_ram, 3),
-                    total_ram=round(response.total_ram, 3),
-                    used_cpu=round(response.used_cpu, 2),
-                    avg_response_time=round(response.avg_response_time),
+            if isinstance(response, str):
+                healths.append(
+                    HealthResponse(
+                        address=vdb_address,
+                        used_ram=-1,
+                        total_ram=-1,
+                        used_cpu=-1,
+                        avg_response_time=-1,
+                    )
                 )
-            )
+            else:
+                healths.append(
+                    HealthResponse(
+                        address=vdb_address,
+                        used_ram=round(response.used_ram, 3),
+                        total_ram=round(response.total_ram, 3),
+                        used_cpu=round(response.used_cpu, 2),
+                        avg_response_time=round(response.avg_response_time),
+                    )
+                )
         return healths
 
     def similarity_search(self, params: SimilaritySearchRequest):
