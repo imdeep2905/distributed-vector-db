@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from models import (
@@ -10,6 +11,9 @@ from models import (
 )
 from vdb_connector import VDBConnector
 
+VDB_BASE_NAME = "dsd-vdb-{0}:50051"
+VDB_REPLICAS = int(os.environ["VDB_REPLICAS"])
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -20,11 +24,7 @@ app.add_middleware(
 )
 
 vdb_connector = VDBConnector(
-    vdb_addresses=[
-        "dsd-vdb-1:50051",
-        "dsd-vdb-2:50051",
-        "dsd-vdb-3:50051",
-    ]
+    vdb_addresses=[VDB_BASE_NAME.format(i) for i in range(1, VDB_REPLICAS + 1)]
 )
 
 

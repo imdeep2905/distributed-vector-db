@@ -107,14 +107,17 @@ const Query = () => {
               </Td>
             </Tr>
           ) : (
-            results.map((result, index) => (
-              <Tr key={index}>
-                <Td>{result.id}</Td>
-                <Td>{result.distance}</Td>
-                <Td>{result.document}</Td>
-                <Td>{JSON.stringify(result.metadata)}</Td>
-              </Tr>
-            ))
+            results.map(
+              (result, index) =>
+                index < nResults && (
+                  <Tr key={index}>
+                    <Td>{result.id}</Td>
+                    <Td>{result.distance}</Td>
+                    <Td>{result.document}</Td>
+                    <Td>{JSON.stringify(result.metadata)}</Td>
+                  </Tr>
+                )
+            )
           )}
         </Tbody>
       </Table>
