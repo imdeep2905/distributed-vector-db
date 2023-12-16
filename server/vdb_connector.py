@@ -63,23 +63,34 @@ class VDBConnector:
                     results.append(result)
                 except Exception as e:
                     print(f"Exception occurred: {e}")
-                    results.append("OFFLINE")
 
         return results
 
+    @staticmethod
+    def _health_wrapper(stub, address):
+        try:
+            response = stub.health(Empty())
+            return {"response": response, "address": address}
+        except Exception as e:
+            print(f"Exception occurred for {address}: {e}")
+            return {"response": "OFFLINE", "address": address}
+
     def healths(self):
         responses = self.execute_with_threads(
-            [stub.health for stub in self.stubs],
-            [[Empty()] for _ in range(self.num_vdbs)],
+            [self._health_wrapper for _ in range(self.num_vdbs)],
+            [
+                (stub, address)
+                for stub, address in zip(self.stubs, self.vdb_addresses)
+            ],
             [{} for _ in range(self.num_vdbs)],
             self.num_vdbs,
         )
         healths = []
-        for vdb_address, response in zip(self.vdb_addresses, responses):
-            if isinstance(response, str):
+        for response in responses:
+            if response["response"] == "OFFLINE":
                 healths.append(
                     HealthResponse(
-                        address=vdb_address,
+                        address=response["address"],
                         used_ram=-1,
                         total_ram=-1,
                         used_cpu=-1,
@@ -87,9 +98,11 @@ class VDBConnector:
                     )
                 )
             else:
+                address = response["address"]
+                response = response["response"]
                 healths.append(
                     HealthResponse(
-                        address=vdb_address,
+                        address=address,
                         used_ram=round(response.used_ram, 3),
                         total_ram=round(response.total_ram, 3),
                         used_cpu=round(response.used_cpu, 2),
@@ -115,6 +128,8 @@ class VDBConnector:
         )
         ids, distances, metadatas, documents = [], [], [], []
         for response in responses:
+            if isinstance(response, dict):
+                continue
             ids.extend(list(response.ids))
             distances.extend(list(response.distances))
             metadatas.extend(list(response.metadatas))
@@ -168,13 +183,20 @@ class VDBConnector:
 
     def add_texts_to_random2(self, documents, metadatas, ids):
         assert self.num_vdbs >= 2
-        for document, metadata, id in zip(documents, metadatas, ids):
-            first_i = random.randint(0, self.num_vdbs - 1)
-            second_i = random.randint(0, self.num_vdbs - 1)
-            while second_i == first_i:
-                second_i = random.randint(0, self.num_vdbs - 1)
-            self.add_text_in_stub(first_i, document, metadata, id)
-            self.add_text_in_stub(second_i, document, metadata, id)
+        indices = list(range(0, self.num_vdbs))
+        random.shuffle(indices)
+        added_count = 0
+        for i in indices:
+            if added_count == 2:
+                break
+            try:
+                for document, metadata, id in zip(documents, metadatas, ids):
+                    self.add_text_in_stub(i, document, metadata, id)
+                added_count += 1
+            except Exception as e:
+                print(
+                    f"Error while adding to {self.vdb_addresses[i]}. Error = {e}"
+                )
 
     def add_text(self, params: AddTextRequest):
         if STRATEGY == "random_2":

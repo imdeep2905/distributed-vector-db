@@ -49,4 +49,4 @@ RUN ./build_protos.sh
 WORKDIR /app/server
 
 # Execute Python application
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8000 --reload & serve -s /app/server/static -l 3000"]
+ENTRYPOINT ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8000 --reload & serve -s /app/server/static -l 3000"]

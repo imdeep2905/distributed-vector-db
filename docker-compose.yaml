@@ -8,11 +8,13 @@ services:
       - "50051"
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: ${VDB_REPLICAS}
   server:
     image: vdb_server
     networks:
       - bridge-network
+    environment:
+      - VDB_REPLICAS=${VDB_REPLICAS}
     ports:
       - "3000:3000"
       - "8000:8000"

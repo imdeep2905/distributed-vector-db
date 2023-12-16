@@ -59,14 +59,20 @@ const TableComponent = () => {
             data.map((item) => (
               <Tr key={item.key}>
                 <Td>{item.address}</Td>
-                <Td>{item.used_ram == -1 ? "OFFLINE" : item.used_ram}</Td>
-                <Td>{item.total_ram == -1 ? "OFFLINE" : item.total_ram}</Td>
-                <Td>{item.used_cpu == -1 ? "OFFLINE" : item.used_cpu}</Td>
-                <Td>
-                  {item.avg_response_time == -1
-                    ? "OFFLINE"
-                    : item.avg_response_time}
-                </Td>
+                {item.used_ram !== -1 ? (
+                  <>
+                    <Td>{item.used_ram}</Td>
+                    <Td>{item.total_ram}</Td>
+                    <Td>{item.used_cpu}</Td>
+                    <Td>{item.avg_response_time}</Td>
+                  </>
+                ) : (
+                  <Td colSpan={4} textAlign="center">
+                    <span style={{ color: "red", fontWeight: "bold" }}>
+                      OFFLINE
+                    </span>
+                  </Td>
+                )}
               </Tr>
             ))
           )}
