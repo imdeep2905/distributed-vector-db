@@ -1,6 +1,9 @@
 # Use the official Python image with Python 3.11
 FROM python:3.11
 
+RUN apt-get update
+RUN apt-get install dnsutils -y
+
 # Set the working directory to /app
 WORKDIR /app
 
@@ -19,5 +22,8 @@ EXPOSE 50051
 # Run build_protos.sh
 RUN ./build_protos.sh
 
+# Set the working directory to /app
+WORKDIR /app/vdb
+
 # Execute Python application
-ENTRYPOINT ["python", "vdb/app.py"]
+ENTRYPOINT ["sh", "run.sh"]
