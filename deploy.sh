@@ -1,5 +1,6 @@
 #!/bin/bash
-
+docker compose down  
+docker volume create chromadb-data 
 # Export project name
 export COMPOSE_PROJECT_NAME="dsd"
 
