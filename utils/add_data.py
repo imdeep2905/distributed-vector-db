@@ -12,7 +12,7 @@ def process_file(file_path):
         print(len(document_content))
 
     # Split document content into 10 parts
-    total_parts = 10
+    total_parts = 15
     part_size = len(document_content) // total_parts
 
     # Prepare and make API requests for each part
@@ -41,7 +41,7 @@ def make_api_request(payload, file_path, part_number):
     print(f"File: {file_path}, Part {part_number}, Status Code: {response.status_code}, Response: {response.text}")
 
 # Specify the folder containing the .txt files
-folder_path = "/Users/jayminsuhagiya/Desktop/Gutenberg/txt"
+folder_path = "/Users/shivam/Downloads/Gutenberg/txt"
 
 # Iterate through each file in the folder
 for file_name in os.listdir(folder_path):

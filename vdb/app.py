@@ -2,6 +2,8 @@ import grpc
 import time
 import psutil
 import json
+import socket
+import subprocess
 import chromadb
 from concurrent import futures
 from protos import vdb_service_pb2, vdb_service_pb2_grpc
@@ -37,9 +39,63 @@ class VDBServicer(vdb_service_pb2_grpc.VDBServiceServicer):
         cpu_percent = psutil.cpu_percent(interval=1)
 
         return used_ram, total_ram, cpu_percent
+    
+    @staticmethod
+    def get_current_container_id():
+        try:
+            result = subprocess.run(["cat", "../etc/hostname"], stdout=subprocess.PIPE, text=True, check=True)
+            container_id = result.stdout.strip()
+            return container_id
+        except Exception as e:
+            print(e)
+
+    @staticmethod
+    def parse_memory(memory_str):
+        # Parse memory string and convert to MiB
+        if 'KiB' in memory_str:
+            return float(memory_str.replace('KiB', '')) / 1024
+        elif 'MiB' in memory_str:
+            return float(memory_str.replace('MiB', ''))
+        elif 'GiB' in memory_str:
+            return float(memory_str.replace('GiB', '')) * 1024
+        else:
+            return 0.0  # Default to 0 if not recognized
+
+    @staticmethod
+    def get_container_info():
+        # Get the current container ID
+        container_id = VDBServicer.get_current_container_id()
+
+        # Initialize variables
+        used_ram = 0
+        total_ram = 0
+        cpu_percent = 0
+
+        try:
+            # Execute "docker stats" command
+            command = [
+                "docker",
+                "stats",
+                "--no-stream",
+                container_id,
+                "--format",
+                "'{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}'"
+            ]
+
+            result = subprocess.run(command, check=True, stdout=subprocess.PIPE, text=True)
+            # Parse the output
+            stats_parts = result.stdout.strip().split('|')
+            cpu_percent = float(stats_parts[0][1:].replace('%', ''))
+            mem_usage, mem_limit = map(str.strip, stats_parts[1].split('/'))
+            used_ram = VDBServicer.parse_memory(mem_usage)
+            total_ram = VDBServicer.parse_memory(mem_limit)
+        except Exception as e:
+            print(f"Error retrieving container info: {e}")
+
+        return used_ram, total_ram, cpu_percent
 
     def health(self, request, context):
-        used_ram, total_ram, cpu_percent = VDBServicer.get_system_info()
+        used_ram, total_ram, cpu_percent = VDBServicer.get_container_info()
 
         return vdb_service_pb2.HealthResponse(
             used_ram=used_ram,
