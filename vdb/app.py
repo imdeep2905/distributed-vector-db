@@ -47,11 +47,16 @@ class VDBServicer(vdb_service_pb2_grpc.VDBServiceServicer):
         cpu_percent = psutil.cpu_percent(interval=1)
 
         return used_ram, total_ram, cpu_percent
-    
+
     @staticmethod
     def get_current_container_id():
         try:
-            result = subprocess.run(["cat", "../etc/hostname"], stdout=subprocess.PIPE, text=True, check=True)
+            result = subprocess.run(
+                ["cat", "/etc/hostname"],
+                stdout=subprocess.PIPE,
+                text=True,
+                check=True,
+            )
             container_id = result.stdout.strip()
             return container_id
         except Exception as e:
@@ -60,12 +65,12 @@ class VDBServicer(vdb_service_pb2_grpc.VDBServiceServicer):
     @staticmethod
     def parse_memory(memory_str):
         # Parse memory string and convert to MiB
-        if 'KiB' in memory_str:
-            return float(memory_str.replace('KiB', '')) / 1024
-        elif 'MiB' in memory_str:
-            return float(memory_str.replace('MiB', ''))
-        elif 'GiB' in memory_str:
-            return float(memory_str.replace('GiB', '')) * 1024
+        if "KiB" in memory_str:
+            return float(memory_str.replace("KiB", "")) / 1024
+        elif "MiB" in memory_str:
+            return float(memory_str.replace("MiB", ""))
+        elif "GiB" in memory_str:
+            return float(memory_str.replace("GiB", "")) * 1024
         else:
             return 0.0  # Default to 0 if not recognized
 
@@ -87,14 +92,16 @@ class VDBServicer(vdb_service_pb2_grpc.VDBServiceServicer):
                 "--no-stream",
                 container_id,
                 "--format",
-                "'{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}'"
+                "'{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}'",
             ]
 
-            result = subprocess.run(command, check=True, stdout=subprocess.PIPE, text=True)
+            result = subprocess.run(
+                command, check=True, stdout=subprocess.PIPE, text=True
+            )
             # Parse the output
-            stats_parts = result.stdout.strip().split('|')
-            cpu_percent = float(stats_parts[0][1:].replace('%', ''))
-            mem_usage, mem_limit = map(str.strip, stats_parts[1].split('/'))
+            stats_parts = result.stdout.strip().split("|")
+            cpu_percent = float(stats_parts[0][1:].replace("%", ""))
+            mem_usage, mem_limit = map(str.strip, stats_parts[1].split("/"))
             used_ram = VDBServicer.parse_memory(mem_usage)
             total_ram = VDBServicer.parse_memory(mem_limit)
         except Exception as e:
