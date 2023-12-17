@@ -1,4 +1,4 @@
-version: "3"
+version: "3.8"
 services:
   vdb:
     image: vdb_worker
@@ -9,6 +9,8 @@ services:
     deploy:
       mode: replicated
       replicas: ${VDB_REPLICAS}
+    volumes:
+      - chromadb-data:/app/data
   server:
     image: vdb_server
     networks:
@@ -28,3 +30,7 @@ services:
 networks:
   bridge-network:
     driver: bridge
+
+volumes:
+  chromadb-data:
+    external: true

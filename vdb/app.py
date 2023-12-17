@@ -1,4 +1,5 @@
 import grpc
+import os
 import time
 import psutil
 import json
@@ -8,8 +9,15 @@ from protos import vdb_service_pb2, vdb_service_pb2_grpc
 
 
 class VDBServicer(vdb_service_pb2_grpc.VDBServiceServicer):
-    chroma_client = chromadb.Client()
-    collection = chroma_client.create_collection(name="default")
+    chroma_client = chromadb.PersistentClient(path="/app/data")
+    print(
+        "Using collection name: "
+        + f"vdb-{os.environ['REPLICA_INDEX']}-collection"
+    )
+    collection = chroma_client.create_collection(
+        name=f"collection-vdb-{os.environ['REPLICA_INDEX']}-collection",
+        get_or_create=True,
+    )
     num_request_served = 0
     total_time_taken_ms = 0.0
 
