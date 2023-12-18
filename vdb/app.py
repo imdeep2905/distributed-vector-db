@@ -51,12 +51,7 @@ class VDBServicer(vdb_service_pb2_grpc.VDBServiceServicer):
     @staticmethod
     def get_current_container_id():
         try:
-            result = subprocess.run(
-                ["cat", "/etc/hostname"],
-                stdout=subprocess.PIPE,
-                text=True,
-                check=True,
-            )
+            result = subprocess.run(["cat", "/etc/hostname"], stdout=subprocess.PIPE, text=True, check=True)
             container_id = result.stdout.strip()
             return container_id
         except Exception as e:
